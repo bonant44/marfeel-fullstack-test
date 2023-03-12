@@ -10,7 +10,7 @@
     "eject": "react-scripts eject",
     "storybook": "DISABLE_ESLINT_PLUGIN=true start-storybook -p 6006 -s public",
     "build-storybook": "build-storybook -s public",
-    "postinstall": "node build-dataset.js > server/dataset.json"
+    "preapi": "node build-dataset.js > server/dataset.json"
   },
   "eslintConfig": {
     "extends": [

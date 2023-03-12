@@ -1,5 +1,5 @@
 import { Alert } from "@mui/material"
-import { Component, PropsWithChildren, ReactNode } from "react"
+import { Component, PropsWithChildren } from "react"
 
 export class ErrorBoundary extends Component<PropsWithChildren, { error: Error | null }> {
   constructor(props: PropsWithChildren) {

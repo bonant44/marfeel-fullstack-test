@@ -2,31 +2,9 @@ import express, { Application, NextFunction, Request, Response } from 'express'
 import morgan from 'morgan'
 import * as validate from 'express-validator'
 import sortBy from 'sort-by';
-import type {ArticleData} from '../src/api'
+import type {APIArticle} from './types'
 import { createLogger } from './logger';
-
-function sum(items: number[]): number {
-  return items.reduce((a, b) => a + b, 0)
-}
-
-function aggregatedHourlyTraffic(articles: ArticleData[], dateRange: [number, number]): number[] {
-  const values = new Array(24).fill(0)
-  const [from, to] = dateRange
-
-  console.log(dateRange)
-
-  articles.forEach(article => {
-    article.daily_traffic.forEach(daily => {
-      if (daily.day < from || daily.day > to) return
-
-      daily.hourly_traffic.forEach(hourly => {
-        values[hourly.hour] += hourly.traffic
-      })
-    })
-  })
-
-  return values
-}
+import { createDatabase } from './database';
 
 async function main() {
   const isDev = process.env.NODE_ENV === 'development'
@@ -35,7 +13,7 @@ async function main() {
     level: isDev ? 'DEBUG' : 'WARNING'
   });
 
-  const db = (await import('./dataset.json')).default;
+  const db = await createDatabase('./dataset.json');
 
   const app: Application = express();
 
@@ -57,61 +35,103 @@ async function main() {
     '/articles',
     validate.query('from').isInt({min: 1, max: 31}),
     validate.query('to').isInt({min: 1, max: 31}),
-    (req: Request<
-        any,
-        Array<Omit<ArticleData, 'daily_traffic'> & {total: number}>,
-        any,
+    (req:
+      Request<
+        {},
+        Array<APIArticle>,
+        {},
         {from: number, to: number}
       >,
       res: Response
     ) => {
       const {from, to} = req.query
 
-      const data = db.traffic_data.map(a => {
-        const total = sum(a.daily_traffic
-          .filter(x => from <= x.day && x.day <= to)
-          .flatMap(x => x.hourly_traffic.flatMap(h => h.traffic))
-        )
-
-        return {
-          ...a,
-          daily_traffic: undefined,
-          total
-        }
+      const data = db.getOverview({
+        dateRange: {from, to}
       })
 
-      res.json(data.sort(sortBy('-total')))
-    }
-  );
-
-  app.get(
-    '/traffic/hourly',
-    validate.query('from').isInt({min: 1, max: 31}),
-    validate.query('to').isInt({min: 1, max: 31}),
-    (req: Request<
-        any,
-        Array<number>,
-        any,
-        {from: number, to: number}
-      >,
-      res: Response
-    ) => {
-      const {from, to} = req.query
-
-      res.json(aggregatedHourlyTraffic(db.traffic_data, [from, to]))
+      res.json(data.sort(sortBy('-total_traffic')))
     }
   );
 
   app.get(
     '/article/:id',
-    (req: Request<{id: string}, any, any, any>, res) => {
-      const article = db.traffic_data.find(a => a.id === req.params.id)
+    validate.query('from').isInt({min: 1, max: 31}),
+    validate.query('to').isInt({min: 1, max: 31}),
+    (req:
+      Request<
+        {id: string},
+        APIArticle,
+        {},
+        {from: number, to: number}
+      >,
+      res: Response
+    ) => {
+      const {from, to} = req.query;
+
+      const articles = db.getOverview({
+        articlesIds: [req.params.id],
+        dateRange: { from, to }
+      })
+
+      if (articles.length === 0) {
+        return res.status(404).json({error: "Article Not Found"})
+      }
+
+      res.json(articles[0])
+    }
+  )
+
+  app.get(
+    '/traffic',
+    validate.query('from').isInt({min: 1, max: 31}),
+    validate.query('to').isInt({min: 1, max: 31}),
+    (req:
+      Request<
+        {},
+        Array<number>,
+        {},
+        {from: number, to: number}
+      >,
+      res: Response
+    ) => {
+      const {from, to} = req.query
+
+      res.json(
+        db.aggregatedHourlyTraffic({
+          dateRange: {from, to}
+        })
+      )
+    }
+  );
+
+  app.get(
+    '/traffic/:id',
+    validate.query('from').isInt({min: 1, max: 31}),
+    validate.query('to').isInt({min: 1, max: 31}),
+    (req:
+      Request<
+        {id: string},
+        number[],
+        {},
+        {from: number, to: number}
+      >,
+      res: Response
+    ) => {
+      const article = db.getById(req.params.id)
 
       if (!article) {
         return res.status(404).json({error: "Article Not Found"})
       }
 
-      return res.json(article)
+      const {from, to} = req.query
+
+      res.json(
+        db.aggregatedHourlyTraffic({
+          articlesIds: [article.id],
+          dateRange: {from, to}
+        })
+      )
     }
   )
 

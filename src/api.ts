@@ -1,43 +1,30 @@
 import useSWR, { SWRResponse } from 'swr';
+import {APIArticle, APIError} from '../server/types'
 
-export function useArticles([from, to]: [number, number]): SWRResponse<ArticleData[], APIError> {
+export function useArticles([from, to]: [number, number]): SWRResponse<APIArticle[], APIError> {
   return useSWR(`/api/articles?from=${from}&to=${to}`);
 }
 
-export function useHourlyTraffic([from, to]: [number, number]): SWRResponse<number[], APIError> {
-  return useSWR(`/api/traffic/hourly?from=${from}&to=${to}`);
+export function useArticleData(id: string, [from, to]: [number, number]): SWRResponse<APIArticle, APIError> {
+  return useSWR(`/api/article/${id}?from=${from}&to=${to}`);
 }
 
-export function useArticleData(id: string): SWRResponse<ArticleData, APIError> {
-  return useSWR(`/api/article/${id}`);
+export function useHourlyTraffic(query: TrafficQuery): SWRResponse<number[], APIError> {
+  const {articleId, dateRange} = query;
+  const [from, to] = dateRange
+
+  return useSWR(
+    `/api/traffic${
+      articleId ? '/' + articleId : ''
+    }?from=${
+      from
+    }&to=${
+      to
+    }`);
 }
 
-export type APIError = {
-  error: string
-}
 
-export interface TrafficData {
-  traffic_data: ArticleData[];
-}
-
-export interface ArticleData {
-  id:            string;
-  url:           string;
-  author:        string;
-  image_url:     string;
-  /** locale code: e.g. ES, IT, FR... */
-  geo:           string;
-  daily_traffic: DailyTraffic[];
-}
-
-export interface DailyTraffic {
-  /** 0-31 */
-  day:            number;
-  hourly_traffic: HourlyTraffic[];
-}
-
-export interface HourlyTraffic {
-  /* 0-24 */
-  hour:    number;
-  traffic: number;
+type TrafficQuery = {
+  articleId?: string,
+  dateRange: [number, number]
 }

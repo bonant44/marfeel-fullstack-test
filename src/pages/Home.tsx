@@ -1,19 +1,20 @@
 import { Alert, Box, Card, CircularProgress } from "@mui/material"
 import { useNavigate } from "react-router-dom"
-import { ArticleData, useArticles, useHourlyTraffic } from "../api"
-import { Article, Chart } from "../components"
+import { useArticles } from "../api"
+import { Article } from "../components"
+import { HourlyTrafficChart } from "../components/chart/HourlyTrafficChart"
 import { useAppState } from "../state"
 
 export default function Home() {
   const navigate = useNavigate()
   const dateRange = useAppState().getDateRange()
 
-  const onArticleClick = (article: ArticleData) => {
-    navigate('/article/'+article.id)
+  const onArticleClick = (articleId: string) => {
+    navigate('/article/' + articleId)
   }
 
   return (
-    <>
+    <Box sx={{paddingTop: '1rem'}}>
       <Card sx={{margin: '1rem 0', padding: '1rem'}}>
         <HourlyTrafficChart
           dateRange={dateRange}
@@ -23,37 +24,13 @@ export default function Home() {
         dateRange={dateRange}
         onArticleClick={onArticleClick}
       />
-    </>
-  )
-}
-
-type HourlyTrafficChartProps = {
-  dateRange: [number, number]
-}
-
-function HourlyTrafficChart({dateRange}: HourlyTrafficChartProps) {
-  const {data, isLoading, error} = useHourlyTraffic(dateRange)
-
-  if (isLoading) {
-    return <CircularProgress />
-  }
-
-  if (!data || error) {
-    return <Alert severity="error">Error loading chart data</Alert>
-  }
-
-  return (
-    <Chart
-      title="Traffic"
-      data={data}
-      labels={[...Array(24)].map((x, i) => i.toString())}
-    />
+    </Box>
   )
 }
 
 type ArticlesListProps = {
   dateRange: [number, number],
-  onArticleClick: (article: ArticleData) => void
+  onArticleClick: (articleId: string) => void
 }
 
 function ArticlesList({dateRange, onArticleClick}: ArticlesListProps) {
@@ -73,14 +50,14 @@ function ArticlesList({dateRange, onArticleClick}: ArticlesListProps) {
       {data.map(article =>
         <Box
           key={article.id}
-          onClick={() => onArticleClick(article)}
+          onClick={() => onArticleClick(article.id)}
           sx={{cursor: 'pointer'}}
         >
           <Article
             author={article.author}
             url={article.url}
             image={article.image_url}
-            traffic={(article as any).total}
+            traffic={article.total_traffic}
           />
         </Box>
       )}

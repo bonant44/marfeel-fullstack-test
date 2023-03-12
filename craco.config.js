@@ -1,5 +1,6 @@
 const CracoAlias = require('craco-alias');
 
+/** @type {import('@craco/types').CracoConfig}*/
 module.exports = {
   plugins: [
     {

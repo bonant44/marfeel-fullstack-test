@@ -1,4 +1,5 @@
 import express, { Application, NextFunction, Request, Response } from 'express'
+import morgan from 'morgan'
 import sortBy from 'sort-by';
 import type {ArticleData} from '../src/api'
 import { createLogger } from './logger';
@@ -23,13 +24,15 @@ async function main() {
   app.disable('x-powered-by');
   app.set("query parser", "simple");
 
-  app.use((req, res, next) => {
-    res.on('close', () => {
-      log.info(new Date().toISOString() + ' - ' + req.method + ' ' + req.url + ' ' + res.statusCode)
-    })
-    next()
+  // setup API logger
+  app.use(morgan(isDev ? 'dev' : 'common'))
+
+  // trivial healthckeck endpoint
+  app.get('/_health', (req, res) => {
+    res.json({status: 'ok'})
   })
 
+  // the data endpoints
   app.get(
     '/articles',
     (req: Request<

@@ -1,7 +1,11 @@
 import useSWR, { SWRResponse } from 'swr';
 
-export function useTrafficData(): SWRResponse<ArticleData[], APIError> {
-  return useSWR('/api/articles');
+export function useArticles([from, to]: [number, number]): SWRResponse<ArticleData[], APIError> {
+  return useSWR(`/api/articles?from=${from}&to=${to}`);
+}
+
+export function useHourlyTraffic([from, to]: [number, number]): SWRResponse<number[], APIError> {
+  return useSWR(`/api/traffic/hourly?from=${from}&to=${to}`);
 }
 
 export function useArticleData(id: string): SWRResponse<ArticleData, APIError> {

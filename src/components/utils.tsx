@@ -22,27 +22,3 @@ export class ErrorBoundary extends Component<PropsWithChildren, { error: Error |
     )
   }
 }
-
-type ShowProps = {
-  when: any,
-  fallback?: ReactNode,
-  children?: ReactNode
-}
-
-export function Show({when = false, children = null, fallback}: ShowProps) {
-  return (
-    <>{!!when ? children : fallback}</>
-  )
-}
-
-type ForProps<T> = {
-  each: T[] | null | undefined,
-  fallback?: JSX.Element,
-  children: (x: T, i: number, c: T[]) => ReactNode
-}
-
-export function For<T>({each, fallback, children}: ForProps<T>) {
-  return (
-    <>{each ? each.map(children) : fallback}</>
-  )
-}

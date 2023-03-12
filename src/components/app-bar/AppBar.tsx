@@ -1,8 +1,9 @@
 import MuiAppBar from '@mui/material/AppBar';
 import { styled } from '@mui/material/styles';
 import Typography from '@mui/material/Typography';
-import { MenuItem, Select } from '@mui/material';
+import { MenuItem, Select, SelectChangeEvent } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
+import { AppViewMode, useAppState } from '../../state';
 
 const StyledAppBar = styled(MuiAppBar)`
   height: 64px;
@@ -17,6 +18,12 @@ export type AppBarProps = {
 export const AppBar = ({ title }: AppBarProps) => {
   const navigate = useNavigate()
 
+  const {setViewMode, mode} = useAppState()
+
+  const handleDateChange = (e: SelectChangeEvent<AppViewMode>) => {
+    setViewMode(e.target.value as AppViewMode)
+  }
+
   return (
     <StyledAppBar>
       <Typography
@@ -30,12 +37,11 @@ export const AppBar = ({ title }: AppBarProps) => {
         { title }
       </Typography>
 
-      {/* TODO */}
-      <Select>
-        <MenuItem>Today</MenuItem>
-        <MenuItem>Yesterday</MenuItem>
-        <MenuItem>Last seven days</MenuItem>
-        <MenuItem>This month</MenuItem>
+      <Select onChange={handleDateChange} value={mode}>
+        <MenuItem value={'today'}>Today</MenuItem>
+        <MenuItem value={'yesterday'}>Yesterday</MenuItem>
+        <MenuItem value={'last-week'}>Last seven days</MenuItem>
+        <MenuItem value={'month'}>This month</MenuItem>
       </Select>
     </StyledAppBar>
   );

@@ -1,7 +1,7 @@
 import { Alert, Box, Card, CircularProgress } from "@mui/material"
 import { useNavigate } from "react-router-dom"
 import { useArticles } from "../api"
-import { Article } from "../components"
+import { Article, PageTitle } from "../components"
 import { HourlyTrafficChart } from "../components/chart/HourlyTrafficChart"
 import { useAppState } from "../state"
 
@@ -15,6 +15,7 @@ export default function Home() {
 
   return (
     <Box sx={{paddingTop: '1rem'}}>
+      <PageTitle value="Traffic" />
       <Card sx={{margin: '1rem 0', padding: '1rem'}}>
         <HourlyTrafficChart
           dateRange={dateRange}

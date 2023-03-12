@@ -3,15 +3,21 @@ import { create } from 'zustand';
 export type AppViewMode = 'today' | 'yesterday' | 'last-week' | 'month'
 
 export type AppState = {
+  readonly title: string,
   readonly mode: AppViewMode,
 
+  setTitle(title: string): void,
   getDateRange(): [number, number],
-
   setViewMode(type: AppViewMode): void,
 }
 
 export const useAppState = create<AppState>((set, get) => ({
+  title: '',
   mode: 'today',
+
+  setTitle(title: string) {
+    set({ title })
+  },
 
   getDateRange() {
     const today = new Date().getDate()

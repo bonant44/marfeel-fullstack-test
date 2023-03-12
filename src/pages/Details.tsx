@@ -1,7 +1,7 @@
 import { Alert, Box, Card, CircularProgress } from "@mui/material"
 import { useParams } from "react-router-dom"
 import { useArticleData } from "../api"
-import { Article } from "../components"
+import { Article, PageTitle } from "../components"
 import { HourlyTrafficChart } from "../components/chart/HourlyTrafficChart"
 import { useAppState } from "../state"
 
@@ -22,6 +22,7 @@ export default function Details(props: Props) {
 
   return (
     <Box sx={{paddingTop: '1rem'}}>
+      <PageTitle value="< Back" />
       <Article
         author={data.author}
         image={data.image_url}
